@@ -668,7 +668,7 @@ cmdinq(Pkts *pk)
 	inq[3] = 2;			/* scsi-2 inq data format */
 	inq[4] = Inqlen - 4;		/* additional length */
 	inq[7] = 1<<6 | 1<<5 | 1<<4;	/* wbus32 | wbus16 | sync */
-	memmove((char*)&inq[8],  "plan 9  " "the-target      " "1.00", Inqlen-8);
+	memmove((char*)&inq[8],  "plan 9  " "the-target      " "1.00\0", Inqlen-8);
 	appdata(pk, inq, (alen > Inqlen? Inqlen: alen));
 }
 
