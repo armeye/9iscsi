@@ -355,6 +355,31 @@ opneg(Pkts *pk)
 	dumptext("sent", (char *)resp->dseg, getbe3(resp->dseglen));
 }
 
+void
+secneg(Pkts *pk)
+{
+	int plen, left, len;
+	char *p, *resptxt, *txtstart, *eq;
+	Iscsiloginresp *resp;
+	Iscsiloginreq *req;
+
+	req = (Iscsiloginreq *)pk->pkt;
+	resp = (Iscsiloginresp *)pk->resppkt;
+	resptxt = txtstart = (char *)resp->dseg;
+
+	resp->lun[7] = 1;		/* non-zero tsih */
+
+	strcpy(resptxt, "AuthMethod=None");
+	resptxt += strlen(resptxt) + 1;
+
+	putbe3(resp->dseglen, resptxt - txtstart);
+	pk->resplen = ROUNDUP(resptxt - (char *)pk->resppkt, 4);
+	if (debug)
+		fprint(2, "negotiated operational params for target %s:\n",
+			advtarg);
+	dumptext("sent", (char *)resp->dseg, getbe3(resp->dseglen));
+}
+
 /*
  * phases: 0, security negotiation
  *	1, operational negotiation
@@ -399,7 +424,9 @@ ilogin(Pkts *pk)
 
 	switch (csg) {
 	case 0:
-		sysfatal("not willing to negotiate security; sorry");
+		/* just fake it */
+		secneg(pk);
+		break;
 	case 1:
 		opneg(pk);
 		break;
