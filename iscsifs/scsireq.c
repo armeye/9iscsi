@@ -322,6 +322,7 @@ SRinquiry(ScsiReq *rp)
 	cmd[4] = sizeof(rp->inquiry);
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof(cmd);
+	memset(rp->inquiry, 0, sizeof rp->inquiry);
 	rp->data.p = rp->inquiry;
 	rp->data.count = sizeof(rp->inquiry);
 	rp->data.write = 0;
