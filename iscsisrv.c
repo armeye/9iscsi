@@ -695,7 +695,7 @@ cmdinq(Pkts *pk)
 	inq[3] = 2;			/* scsi-2 inq data format */
 	inq[4] = Inqlen - 4;		/* additional length */
 	inq[7] = 1<<6 | 1<<5 | 1<<4;	/* wbus32 | wbus16 | sync */
-	snprint((char *)inq+8, Inqlen-8, "%s", "plan9 the-target 1.00");
+	snprint((char *)inq+8, Inqlen-8, "%s", "plan9    the-target     1.0");
 	appdata(pk, inq, (alen > Inqlen? Inqlen: alen));
 }
 
