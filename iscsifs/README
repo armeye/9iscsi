@@ -1,0 +1,33 @@
+Usage: ip/iscsifs [-dD] [-m mountpoint] [-s srvname] host volume
+
+Iscsifs is a iSCSI file server, that allows to manipulate all LUNs
+in a specific target name. The directory structure is hereby:
+
+	/n/iscsi/ctl
+		    /$n/ctl
+			/$n/raw
+			/$n/raw
+
+The root ctl shows on read the geometry and identifiers of all LUNs.
+$n is a from 0 beginning LUN in the target. Every LUN has a file ctl,
+that shows the geometry and identifier of that LUN, a raw file, that
+can be used with scuzz and a data file, which provied rw access to
+the blocks of the LUN in the target.
+
+The ctl file in the root directory allows the command "reset", which
+reconnects the iSCSI file server and reloads the LUNs.
+
+Example of usage:
+
+term% ip/iscsifs 192.168.0.23 iqn.2006-04.your.domain:somehdd
+term% disk/fdisk -p /n/iscsi/0/data
+part dos 7 31559
+term% dossrv -f /n/iscsi/0/data:7 iscsihdd
+dossrv: serving #s/iscsihdd
+term% mount -c /srv/iscsihdd /n/d:
+term% ls -l /n/d:
+alrw-rw-rw- M 39 bill trog 180364 Oct  5 18:14 /n/d:/9LOAD
+d-rwxrwxrwx M 39 bill trog      0 Nov 13 14:30 /n/d:/benedict
+
+If there are several partitions, you can use fs(3) to manage them - it
+seemed redundant to add partition handling to the umsfs driver itself.

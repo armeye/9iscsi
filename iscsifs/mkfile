@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+TARG = iscsifs
+
+HFILES =\
+	scsireq.h\
+
+OFILES =\
+	iscsifs.$O\
+	scsireq.$O\
+
+BIN=/$objtype/bin/ip
+
+</sys/src/cmd/mkone
