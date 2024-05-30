@@ -7,7 +7,6 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include <disk.h>			/* for scsi cmds */
 #include <pool.h>
 #include "iscsi.h"
 
@@ -762,21 +761,20 @@ cmdreqsense(Pkts *pk)
 	}
 }
 
-//	ScmdRewind	= 0x01,		/* rezero/rewind */
-//	ScmdFormat	= 0x04,		/* format unit */
-//	ScmdRblimits	= 0x05,		/* read block limits */
-//	ScmdSeek	= 0x0B,		/* seek */
-//	ScmdFmark	= 0x10,		/* write filemarks */
-//	ScmdSpace	= 0x11,		/* space forward/backward */
-//	ScmdMselect6	= 0x15,		/* mode select */
-//	ScmdMselect10	= 0x55,		/* mode select */
-//	ScmdMsense10	= 0x5A,		/* mode sense */
-//	ScmdStart	= 0x1B,		/* start/stop unit */
-//	ScmdRcapacity16	= 0x9e,		/* long read capacity */
-//	ScmdRformatcap	= 0x23,		/* read format capacity */
-//	ScmdExtseek	= 0x2B,		/* extended seek */
-	// 0xa1 is ata command pass through (12)
-	// 0x85 is ata command pass through (16)
+enum {
+	ScmdInq		= 0x12,		/* inquiry */
+	ScmdTur		= 0x00,		/* test unit ready */
+	ScmdRsense	= 0x03,		/* request sense */
+	ScmdRcapacity	= 0x25,		/* read capacity */
+	ScmdMsense6	= 0x1A,		/* mode sense */
+	ScmdExtread	= 0x28,		/* extended read (10 bytes) */
+	ScmdRead	= 0x08,		/* read */
+	ScmdRead16	= 0x88,		/* long read (16 bytes) */
+	ScmdExtwrite	= 0x2A,		/* extended write (10 bytes) */
+	ScmdExtwritever = 0x2E,		/* extended write and verify (10) */
+	ScmdWrite	= 0x0A,		/* write */
+	ScmdWrite16	= 0x8A,		/* long write (16 bytes) */
+};
 
 int
 execcdb(Pkts *pk)
