@@ -275,12 +275,17 @@ iscsiinit(Iscsis *iscsi)
 	iscsi->lun[0].flags = Fopen | Frw10;
 	memset(luns, 0, sizeof(luns));
 
-	if((maxlun = SRreportlun(&iscsi->lun[0], (uchar *)luns, sizeof(luns))) < 0)
-		return -1;
-
-	iscsi->maxlun = (maxlun / 8) & 0xFF;
-	if(iscsi->maxlun > 256)
-		iscsi->maxlun = 256;
+	/*
+	* Some targets, like iscsisrv, don't have REPORT LUN. Pretend we only have lun
+	* and hope for the best
+	*/
+	if((maxlun = SRreportlun(&iscsi->lun[0], (uchar *)luns, sizeof(luns))) < 0) {
+		iscsi->maxlun = 1;
+	} else {
+		iscsi->maxlun = (maxlun / 8) & 0xFF;
+		if(iscsi->maxlun > 256)
+			iscsi->maxlun = 256;
+	}
 
 	if(debug)
 		fprint(2, "maxlun: %.2ux\n", iscsi->maxlun);
