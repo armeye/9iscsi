@@ -33,7 +33,7 @@ char *advtarg = "the-target";
 char *inquiry = "iscsi disk";
 
 static char sendtargall[] = "SendTargets=All";
-static char targnm[] = "TargetName=";
+static char targnm[] = "TargetName=iqn.2006-05.de.9grid:";
 static char hdrdig[] =  "HeaderDigest=";
 static char datadig[] = "DataDigest=";
 static char maxconns[] = "MaxConnections=";
