@@ -676,7 +676,8 @@ cmdinq(Pkts *pk)
 		return;
 	evpd = req->cdb[1] & 1;
 	if (evpd != 0) {
-		fprint(2, "** evpd %d in inquiry\n", evpd);
+		if(debug)
+			fprint(2, "** evpd %d in inquiry\n", evpd);
 		chkcond(pk, 5, 0x24, 0);
 		return;
 	}
@@ -964,8 +965,9 @@ icmd(Pkts *pk)
 
 	lun = getbe8(req->lun);
 	if (lun != 0) {
-		fprint(2, "unsupported non-zero lun %,llud (%#llux) in cmd req\n",
-			lun, lun);
+		if(debug)
+			fprint(2, "unsupported non-zero lun %,llud (%#llux) in cmd req\n",
+				lun, lun);
 		chkcond(pk, 5, 0x25, 0);
 		return Reply;
 	}
