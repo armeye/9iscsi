@@ -358,12 +358,9 @@ opneg(Pkts *pk)
 void
 secneg(Pkts *pk)
 {
-	int plen, left, len;
-	char *p, *resptxt, *txtstart, *eq;
+	char *resptxt, *txtstart;
 	Iscsiloginresp *resp;
-	Iscsiloginreq *req;
 
-	req = (Iscsiloginreq *)pk->pkt;
 	resp = (Iscsiloginresp *)pk->resppkt;
 	resptxt = txtstart = (char *)resp->dseg;
 
