@@ -597,7 +597,7 @@ targread(Pkts *pk, vlong blockno, int nblks)
 }
 
 void
-chkcond(Pkts *pk)
+chkcond(Pkts *pk, int k, int c, int q)
 {
 	uchar sense[18];
 
@@ -606,10 +606,10 @@ chkcond(Pkts *pk)
 	memset(sense, 0, sizeof sense);
 	sense[0] = 0x70;			/* sense data format 0x70 */
 	sense[0] |= 0x80;			/* sense data is valid */
-	sense[2] = 5;
+	sense[2] = k;				/* sense key */
 	sense[7] = sizeof sense - 7;
-	sense[12] = 0x25;				/* illegal request */
-	sense[13] = 0x0;				/* lun unsupported */
+	sense[12] = c;				/* ASC */
+	sense[13] = q;				/* ASCQ */
 	appsense(pk, sense, sizeof sense);
 }
 
@@ -637,7 +637,7 @@ targwrite(Pkts *pk, vlong blockno, int nblks)
 		 */
 		fprint(2, "** nblks %d * Blksz %d = %d > dseglen %lud\n",
 			nblks, Blksz, nblks*Blksz, getbe3(req->dseglen));
-		chkcond(pk);
+		chkcond(pk, 3, 0x3, 0);
 		return;
 	}
 	targopen();
@@ -645,7 +645,7 @@ targwrite(Pkts *pk, vlong blockno, int nblks)
 		sysfatal("seek on target failed: %r");
 	n = write(targfd, blks, nblks*Blksz);
 	if (n != nblks*Blksz)
-		chkcond(pk);			/* write error */
+		chkcond(pk, 3, 0x3, 0);			/* write error */
 }
 
 int
@@ -658,7 +658,7 @@ getcdblun(Pkts *pk)
 	lun = req->cdb[1] >> 5;
 	if (lun != 0) {
 		fprint(2, "unsupported non-zero lun %d\n", lun);
-		chkcond(pk);
+		chkcond(pk, 5, 0x25, 0);
 		return -1;
 	}
 	return lun;
@@ -680,7 +680,7 @@ cmdinq(Pkts *pk)
 	evpd = req->cdb[1] & 1;
 	if (evpd != 0) {
 		fprint(2, "** evpd %d in inquiry\n", evpd);
-		chkcond(pk);
+		chkcond(pk, 5, 0x24, 0);
 		return;
 	}
 	page = req->cdb[2];
@@ -907,7 +907,7 @@ execcdb(Pkts *pk)
 		 * apparently ireject is too big a club, at least for the
 		 * the linux initiator.
 		 */
-		chkcond(pk);
+		chkcond(pk, 5, 0x20, 0);
 		break;
 	}
 	return Reply;
@@ -969,7 +969,7 @@ icmd(Pkts *pk)
 	if (lun != 0) {
 		fprint(2, "unsupported non-zero lun %,llud (%#llux) in cmd req\n",
 			lun, lun);
-		chkcond(pk);
+		chkcond(pk, 5, 0x25, 0);
 		return Reply;
 	}
 	if (rd) {
