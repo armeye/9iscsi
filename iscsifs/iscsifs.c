@@ -10,6 +10,8 @@
 #include <thread.h>
 #include <9p.h>
 #include <ip.h>
+#include <libsec.h>
+#include <auth.h>
 #include "scsireq.h"
 
 #define PATH(type, n)		((type)|((n)<<8))
@@ -93,7 +95,7 @@ struct Iscsis {
 Iscsis iscsi;
 long starttime;
 char *owner, *host, *vol;
-int debug;
+int debug, tls;
 
 typedef struct Ihdr Ihdr;
 struct Ihdr {
@@ -253,9 +255,33 @@ iscsilogin(Iscsis *iscsi)
 int
 iscsiconnect(Iscsis *iscsi)
 {
+	int fd;
+	TLSconn *conn;
+	AuthInfo *ai;
+
 	iscsi->fd = dial(netmkaddr(host, "tcp", "3260"), 0, 0, 0);
 	if(iscsi->fd < 0)
 		sysfatal("dial: %r");
+
+	if(tls){
+		conn = mallocz(sizeof *conn, 1);
+		ai = auth_proxy(iscsi->fd, auth_getkey, "proto=p9any role=client");
+		if(ai == nil)
+			sysfatal("auth_proxy: %r");
+		conn->pskID = "p9secret";
+		conn->psk = ai->secret;
+		conn->psklen = ai->nsecret;
+	
+		fd = tlsClient(iscsi->fd, conn);
+		if(fd < 0)
+			sysfatal("tlsclient: %r");
+		free(conn->sessionID);
+		free(conn->cert);
+		free(conn);
+		free(ai);
+
+		iscsi->fd = fd;
+	}
 
 	if(iscsilogin(iscsi))
 		sysfatal("login failed");
@@ -803,7 +829,7 @@ Srv usbssrv = {
 void
 usage(void)
 {
-	fprint(2, "Usage: %s [-dD] [-m mountpoint] [-s srvname] host volume\n", argv0);
+	fprint(2, "Usage: %s [-dDT] [-m mountpoint] [-s srvname] host volume\n", argv0);
 	exits("Usage");
 }
 
@@ -824,6 +850,9 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		srvname = EARGF(usage());
+		break;
+	case 'T':
+		tls++;
 		break;
 	case 'D':
 		++chatty9p;
