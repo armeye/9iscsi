@@ -604,10 +604,12 @@ chkcond(Pkts *pk)
 	pk->resppkt->opspfc[2] = 2;		/* status: check condition */
 
 	memset(sense, 0, sizeof sense);
-	sense[0] = 0x70;			/* sense data format */
+	sense[0] = 0x70;			/* sense data format 0x70 */
+	sense[0] |= 0x80;			/* sense data is valid */
+	sense[2] = 5;
 	sense[7] = sizeof sense - 7;
-	sense[12] = 5;				/* illegal request */
-	sense[13] = 0x25;			/* lun unsupported */
+	sense[12] = 0x25;				/* illegal request */
+	sense[13] = 0x0;				/* lun unsupported */
 	appsense(pk, sense, sizeof sense);
 }
 
