@@ -788,6 +788,26 @@ cmdreqsense(Pkts *pk)
 	}
 }
 
+void
+cmdreportluns(Pkts *pk)
+{
+	Iscsicmdreq *req;
+	int len;
+	uchar data[16];
+
+	fprint(2, "report luns!\n");
+	
+	req = (Iscsicmdreq *)pk->pkt;
+	len = getbe4(&req->cdb[6]);
+	if(len < 16){
+		fprint(2, "too short %d\n", len);
+		return;
+	}
+	memset(data, 0, sizeof(data));
+	putbe4(data, 16);
+	appdata(pk, data, sizeof data);
+}
+
 enum {
 	ScmdInq		= 0x12,		/* inquiry */
 	ScmdTur		= 0x00,		/* test unit ready */
@@ -801,6 +821,7 @@ enum {
 	ScmdExtwritever = 0x2E,		/* extended write and verify (10) */
 	ScmdWrite	= 0x0A,		/* write */
 	ScmdWrite16	= 0x8A,		/* long write (16 bytes) */
+	ScmdReportLuns	= 0xA0,		/* report number of luns */
 };
 
 int
@@ -874,6 +895,9 @@ execcdb(Pkts *pk)
 		// adjust cdb offsets
 		// targwrite(pk, getbe4(cdb + 2), cdb[7]<<8 | cdb[8]);
 		return ireject(pk);
+	case ScmdReportLuns:
+		cmdreportluns(pk);
+		break;
 	default:
 		if (debug)
 			fprint(2, "** unknown scsi cmd %#x in cmd req\n", cdb[0]);

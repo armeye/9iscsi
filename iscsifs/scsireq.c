@@ -409,7 +409,7 @@ SRmodesense10(ScsiReq *rp, uchar page, uchar *list, long nbytes)
 long
 SRreportlun(ScsiReq *rp, uchar *list, long nbytes)
 {
-	uchar cmd[11];
+	uchar cmd[12];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdReportlun;

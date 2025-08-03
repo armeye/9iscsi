@@ -268,7 +268,7 @@ iscsiinit(Iscsis *iscsi)
 {
 	uchar data[8], i;
 	int maxlun;
-	uvlong luns[512];
+	uchar luns[256*8+8];
 
 	iscsi->maxlun = 0;
 	iscsi->lun[0].iscsi = &iscsi->lun[0];
@@ -281,17 +281,15 @@ iscsiinit(Iscsis *iscsi)
 	*/
 	if((maxlun = SRreportlun(&iscsi->lun[0], (uchar *)luns, sizeof(luns))) < 0) {
 		iscsi->maxlun = 1;
-	} else {
-		iscsi->maxlun = (maxlun / 8) & 0xFF;
-		if(iscsi->maxlun > 256)
-			iscsi->maxlun = 256;
-	}
+	} else 
+		iscsi->maxlun = ((maxlun / 8) - 1) & 0xFF;
+
 
 	if(debug)
 		fprint(2, "maxlun: %.2ux\n", iscsi->maxlun);
 
 	for(i = 0; i < (iscsi->maxlun & 0xFF); i++) {
-		iscsi->lun[i].lun = luns[i + 1];
+		iscsi->lun[i].lun = luns[i*8 + 1];
 		iscsi->lun[i].iscsi = &iscsi->lun[i];
 		iscsi->lun[i].flags = Fopen | Frw10;
 		if(SRinquiry(&iscsi->lun[i]) == -1)
